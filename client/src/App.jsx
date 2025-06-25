@@ -1,11 +1,18 @@
-import React from 'react'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Register from "./pages/register";
+import Login from "./pages/login";
+import UploadPage from "./pages/uploadPage";
 
-const App = () => {
+function App() {
   return (
-    <div>
-      <h1 className='text-3xl text-amber-300'>Hello React</h1>
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/upload" element={<UploadPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
