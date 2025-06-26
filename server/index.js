@@ -6,6 +6,7 @@ import cors from "cors";
 
 // Routes
 import authRoutes from "./routes/authRoutes.js";
+import docRoutes from "./routes/docRoutes.js";
 
 // Load environment variables
 dotenv.config();
@@ -19,6 +20,9 @@ app.use(express.json()); // Parses incoming JSON in requests
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/docs",docRoutes);
+app.use("/uploads", express.static("uploads"));
+
 
 // Basic test route
 app.get("/", (req, res) => {

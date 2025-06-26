@@ -1,4 +1,5 @@
 // server/middleware/authMiddleware.js
+
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
@@ -9,7 +10,6 @@ const protect = async (req, res, next) => {
     try {
       const token = authHeader.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
       req.user = await User.findById(decoded.id).select("-password");
       next();
     } catch (err) {
@@ -20,4 +20,4 @@ const protect = async (req, res, next) => {
   }
 };
 
-export default protect;
+export default protect; // ✅ Default export at the end
