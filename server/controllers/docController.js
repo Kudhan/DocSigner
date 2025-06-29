@@ -25,3 +25,16 @@ export const getUserDocs = async (req, res) => {
     res.status(500).json({ message: "Error fetching documents", error: err.message });
   }
 };
+
+
+
+export const getDocById = async (req, res) => {
+  try {
+    const doc = await Document.findById(req.params.id);
+    if (!doc) return res.status(404).json({ message: "Document not found" });
+    res.json(doc);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching document", error: err.message });
+  }
+};
+
