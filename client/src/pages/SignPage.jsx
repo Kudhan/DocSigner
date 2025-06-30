@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
-import SignatureToolbar from "../components/SignatureToolbar";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import SignatureHistory from "../components/signatureHistory";
 import SignatureToolbar from "../components/signToolbar";
