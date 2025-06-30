@@ -6,6 +6,7 @@ import axiosInstance from "../utils/axiosInstance";
 import SignatureToolbar from "../components/SignatureToolbar";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import SignatureHistory from "../components/signatureHistory";
+import SignatureToolbar from "../components/signToolbar";
 import { Toaster, toast } from "react-hot-toast";
 
 GlobalWorkerOptions.workerSrc = new URL(
