@@ -20,3 +20,23 @@ export const getSignaturesForDoc = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch signatures", error: err.message });
   }
 };
+
+
+export const deleteSignature = async (req, res) => {
+  try {
+    const signature = await Signature.findById(req.params.id);
+    if (!signature) {
+      return res.status(404).json({ message: "Signature not found" });
+    }
+
+    // Optional: Check ownership (only allow user who created it)
+    if (signature.userId.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    await signature.deleteOne();
+    res.json({ message: "Signature deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Delete failed", error: err.message });
+  }
+};
