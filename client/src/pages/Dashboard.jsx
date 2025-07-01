@@ -24,27 +24,27 @@ const Dashboard = () => {
     fetchAll();
   }, []);
 
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-slate-100 to-indigo-50 p-6">
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-3xl font-bold text-gray-800">📋 Dashboard</h2>
-        <button
-          onClick={() => navigate("/upload")}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow"
-        >
-          ⬆️ Upload New PDF
-        </button>
-        <button
-             onClick={() => {
-            localStorage.removeItem("token");
-            navigate("/login");
-              }}
-          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded shadow"
-        >
-          🔓 Sign Out
+        <div className="flex gap-3">
+          <button
+            onClick={() => navigate("/upload")}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow"
+          >
+            ⬆️ Upload New PDF
           </button>
-
+          <button
+            onClick={() => {
+              localStorage.removeItem("token");
+              navigate("/login");
+            }}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded shadow"
+          >
+            🔓 Sign Out
+          </button>
+        </div>
       </div>
 
       {error && <p className="text-red-500 text-center">{error}</p>}
@@ -70,13 +70,15 @@ const Dashboard = () => {
                   </div>
                   <div className="mt-2 md:mt-0 flex gap-3">
                     <a
-                      href={`http://localhost:5000/${doc.path.replace(/\\/g, "/")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded"
-                    >
-                      👁️ Preview
-                    </a>
+  href={`https://docs.google.com/gview?url=${encodeURIComponent(doc.path)}&embedded=true`}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded"
+>
+  👁️ Preview
+</a>
+
+
                     <Link
                       to={`/sign/${doc._id}`}
                       className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded"

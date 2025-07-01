@@ -13,6 +13,7 @@ const RequestSignature = () => {
   });
 
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
   const currentUser = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
@@ -23,21 +24,23 @@ const RequestSignature = () => {
           axiosInstance.get("/docs"),
         ]);
 
-        const users = userRes.data;
+        const users = userRes.data || [];
         const filteredUsers = currentUser
           ? users.filter((u) => u._id !== currentUser._id)
           : users;
 
         setRecipients(filteredUsers);
-        setDocuments(docRes.data);
+        setDocuments(docRes.data || []);
       } catch (err) {
         console.error("❌ Fetch error:", err);
         toast.error("Failed to load users or documents.");
       }
     };
 
-    fetchUsersAndDocs();
-  }, []);
+    if (token) {
+      fetchUsersAndDocs();
+    }
+  }, [token]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -49,6 +52,7 @@ const RequestSignature = () => {
       toast.error("Please select recipient and document.");
       return;
     }
+
     try {
       await axiosInstance.post("/requests/send", formData);
       toast.success("✅ Signature request sent!");
@@ -59,7 +63,7 @@ const RequestSignature = () => {
     }
   };
 
-  if (!currentUser) return <p className="text-center text-red-500">Please login again.</p>;
+  if (!token) return <p className="text-center text-red-500">Please login again.</p>;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center p-6">
@@ -69,10 +73,12 @@ const RequestSignature = () => {
           to="/dashboard"
           className="text-blue-600 text-sm hover:underline inline-block mb-4"
         >
-          🔙 Go to Dashboard
+          🔙 Back to Dashboard
         </Link>
         <h2 className="text-2xl font-bold mb-4">📨 Send Signature Request</h2>
+
         <form onSubmit={handleSend} className="space-y-4">
+          {/* Recipient */}
           <div>
             <label className="text-sm font-medium">Recipient</label>
             <select
@@ -82,14 +88,19 @@ const RequestSignature = () => {
               className="w-full border rounded px-3 py-2"
             >
               <option value="">Select a recipient</option>
-              {recipients.map((u) => (
-                <option key={u._id} value={u._id}>
-                  {u.name} ({u.email})
-                </option>
-              ))}
+              {recipients.length > 0 ? (
+                recipients.map((u) => (
+                  <option key={u._id} value={u._id}>
+                    {u.name} ({u.email})
+                  </option>
+                ))
+              ) : (
+                <option disabled>No other users found</option>
+              )}
             </select>
           </div>
 
+          {/* Document */}
           <div>
             <label className="text-sm font-medium">Document</label>
             <select
@@ -99,14 +110,19 @@ const RequestSignature = () => {
               className="w-full border rounded px-3 py-2"
             >
               <option value="">Select a document</option>
-              {documents.map((doc) => (
-                <option key={doc._id} value={doc._id}>
-                  {doc.originalName}
-                </option>
-              ))}
+              {documents.length > 0 ? (
+                documents.map((doc) => (
+                  <option key={doc._id} value={doc._id}>
+                    {doc.originalName}
+                  </option>
+                ))
+              ) : (
+                <option disabled>No documents uploaded</option>
+              )}
             </select>
           </div>
 
+          {/* Message */}
           <textarea
             name="message"
             rows={3}

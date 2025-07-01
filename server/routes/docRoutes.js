@@ -1,24 +1,12 @@
 import express from "express";
-import multer from "multer";
-import protect from "../middleware/authMiddleware.js"
-import { getUserDocs, uploadDoc ,getDocById} from "../controllers/docController.js";
+import protect from "../middleware/authMiddleware.js";
+import { getUserDocs, uploadDoc, getDocById } from "../controllers/docController.js";
+import upload from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
-
-const upload = multer({ storage });
-
-router.post("/upload", protect, upload.single("pdf"), uploadDoc);
-router.get("/",protect,getUserDocs);
+router.post("/upload", protect, upload.single("pdf"), uploadDoc); // ✅ uploads to Cloudinary
+router.get("/", protect, getUserDocs);
 router.get("/:id", protect, getDocById);
 
-// ✅ Export the router
 export default router;

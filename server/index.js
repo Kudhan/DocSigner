@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 
+dotenv.config();
 // Routes
 import authRoutes from "./routes/authRoutes.js";
 import docRoutes from "./routes/docRoutes.js";
@@ -12,7 +13,7 @@ import signatureRequestRoutes from "./routes/signatureRequestRoutes.js";
 import signatureAuditRoutes from "./routes/signatureAuditRoutes.js";
 
 // Load env
-dotenv.config();
+
 
 const app = express();
 app.use(cors());
