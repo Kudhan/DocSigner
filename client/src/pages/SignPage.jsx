@@ -6,7 +6,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import SignatureHistory from "../components/signatureHistory";
 import SignatureToolbar from "../components/signToolbar";
 import { Toaster, toast } from "react-hot-toast";
-import Loader from "../components/Loader"; // ✅ Import your custom loader
+import Loader from "../components/loader"
 
 // Worker setup
 GlobalWorkerOptions.workerSrc = new URL(
