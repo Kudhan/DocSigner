@@ -4,22 +4,30 @@ import { Link } from "react-router-dom";
 
 export default function IncomingRequests() {
   const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingRequestId, setLoadingRequestId] = useState(null);
 
   const fetchRequests = async () => {
+    setLoading(true);
     try {
       const res = await axios.get("/requests/incoming");
       setRequests(res.data);
     } catch (err) {
       console.error("Error loading requests:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const updateStatus = async (id, status) => {
+    setLoadingRequestId(id);
     try {
       await axios.put(`/requests/${id}/status`, { status });
-      fetchRequests();
+      await fetchRequests();
     } catch (err) {
       console.error("Error updating status:", err);
+    } finally {
+      setLoadingRequestId(null);
     }
   };
 
@@ -34,7 +42,10 @@ export default function IncomingRequests() {
       </Link>
 
       <h2 className="text-2xl font-bold mb-4 text-gray-800">📥 Incoming Signature Requests</h2>
-      {requests.length === 0 ? (
+
+      {loading ? (
+        <div className="text-center text-gray-600">Loading requests...</div>
+      ) : requests.length === 0 ? (
         <p className="text-gray-500">No incoming requests.</p>
       ) : (
         <ul className="space-y-4">
@@ -44,19 +55,31 @@ export default function IncomingRequests() {
               <p><strong>Document:</strong> {req.document?.filename || "Unknown"}</p>
               <p><strong>Message:</strong> {req.message || "—"}</p>
               <p><strong>Status:</strong> <span className="text-blue-600">{req.status}</span></p>
+
               {req.status === "Pending" && (
                 <div className="mt-2 space-x-2">
                   <button
                     onClick={() => updateStatus(req._id, "Signed")}
-                    className="bg-green-500 text-white px-3 py-1 rounded"
+                    className={`px-3 py-1 rounded text-white ${
+                      loadingRequestId === req._id
+                        ? "bg-green-400 cursor-not-allowed"
+                        : "bg-green-500 hover:bg-green-600"
+                    }`}
+                    disabled={loadingRequestId === req._id}
                   >
-                    ✅ Accept
+                    {loadingRequestId === req._id ? "Processing..." : "✅ Accept"}
                   </button>
+
                   <button
                     onClick={() => updateStatus(req._id, "Rejected")}
-                    className="bg-red-500 text-white px-3 py-1 rounded"
+                    className={`px-3 py-1 rounded text-white ${
+                      loadingRequestId === req._id
+                        ? "bg-red-400 cursor-not-allowed"
+                        : "bg-red-500 hover:bg-red-600"
+                    }`}
+                    disabled={loadingRequestId === req._id}
                   >
-                    ❌ Reject
+                    {loadingRequestId === req._id ? "Processing..." : "❌ Reject"}
                   </button>
                 </div>
               )}

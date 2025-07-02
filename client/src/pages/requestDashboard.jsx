@@ -1,4 +1,3 @@
-// client/src/pages/RequestDashboard.jsx
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 const RequestDashboard = () => {
   const [incoming, setIncoming] = useState([]);
   const [outgoing, setOutgoing] = useState([]);
+  const [statusLoading, setStatusLoading] = useState(""); // request ID being updated
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,41 +23,72 @@ const RequestDashboard = () => {
   }, []);
 
   const handleStatusChange = async (id, newStatus) => {
+    setStatusLoading(id);
     try {
       await axiosInstance.put(`/requests/${id}/status`, { status: newStatus });
-      setIncoming((prev) => prev.map((req) => req._id === id ? { ...req, status: newStatus } : req));
+      setIncoming((prev) =>
+        prev.map((req) => (req._id === id ? { ...req, status: newStatus } : req))
+      );
     } catch (err) {
       console.error(err);
       alert("❌ Failed to update status");
+    } finally {
+      setStatusLoading(""); // reset loading
     }
   };
 
   const renderRequestCard = (req, type) => (
     <div key={req._id} className="bg-white p-4 rounded shadow mb-4">
-      <p><strong>Document ID:</strong> {req.documentId?._id}</p>
-      <p><strong>Status:</strong> {req.status}</p>
-      <p><strong>{type === "incoming" ? "From" : "To"}:</strong> {type === "incoming" ? req.sender.name : req.recipient.name}</p>
+      <p>
+        <strong>Document ID:</strong> {req.documentId?._id}
+      </p>
+      <p>
+        <strong>Status:</strong>{" "}
+        <span
+          className={`${
+            req.status === "Accepted"
+              ? "text-green-600"
+              : req.status === "Rejected"
+              ? "text-red-600"
+              : "text-yellow-600"
+          } font-medium`}
+        >
+          {req.status}
+        </span>
+      </p>
+      <p>
+        <strong>{type === "incoming" ? "From" : "To"}:</strong>{" "}
+        {type === "incoming" ? req.sender.name : req.recipient.name}
+      </p>
 
-      <div className="flex gap-4 mt-2">
+      <div className="flex flex-wrap gap-4 mt-3">
         <button
           onClick={() => navigate(`/sign/${req.documentId._id}`)}
-          className="bg-blue-600 text-white px-4 py-1 rounded"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded"
         >
           📄 View PDF
         </button>
+
         {type === "incoming" && req.status === "Pending" && (
           <>
             <button
               onClick={() => handleStatusChange(req._id, "Accepted")}
-              className="bg-green-600 text-white px-4 py-1 rounded"
+              disabled={statusLoading === req._id}
+              className={`bg-green-600 text-white px-4 py-1 rounded ${
+                statusLoading === req._id ? "opacity-60 cursor-not-allowed" : ""
+              }`}
             >
-              ✅ Accept
+              {statusLoading === req._id ? "Accepting..." : "✅ Accept"}
             </button>
+
             <button
               onClick={() => handleStatusChange(req._id, "Rejected")}
-              className="bg-red-600 text-white px-4 py-1 rounded"
+              disabled={statusLoading === req._id}
+              className={`bg-red-600 text-white px-4 py-1 rounded ${
+                statusLoading === req._id ? "opacity-60 cursor-not-allowed" : ""
+              }`}
             >
-              ❌ Reject
+              {statusLoading === req._id ? "Rejecting..." : "❌ Reject"}
             </button>
           </>
         )}

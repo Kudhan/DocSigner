@@ -6,6 +6,7 @@ import { useNavigate, Link } from "react-router-dom";
 const RequestSignature = () => {
   const [recipients, setRecipients] = useState([]);
   const [documents, setDocuments] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     recipientId: "",
     documentId: "",
@@ -48,11 +49,13 @@ const RequestSignature = () => {
 
   const handleSend = async (e) => {
     e.preventDefault();
+
     if (!formData.recipientId || !formData.documentId) {
       toast.error("Please select recipient and document.");
       return;
     }
 
+    setLoading(true);
     try {
       await axiosInstance.post("/requests/send", formData);
       toast.success("✅ Signature request sent!");
@@ -60,6 +63,8 @@ const RequestSignature = () => {
     } catch (err) {
       console.error("Send failed:", err);
       toast.error("Failed to send request");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -134,9 +139,14 @@ const RequestSignature = () => {
 
           <button
             type="submit"
-            className="bg-indigo-600 text-white w-full py-2 rounded hover:bg-indigo-700"
+            disabled={loading}
+            className={`w-full py-2 rounded text-white ${
+              loading
+                ? "bg-indigo-400 cursor-not-allowed"
+                : "bg-indigo-600 hover:bg-indigo-700"
+            }`}
           >
-            🚀 Send Request
+            {loading ? "Sending..." : "🚀 Send Request"}
           </button>
         </form>
       </div>

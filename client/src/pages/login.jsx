@@ -7,12 +7,15 @@ const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
+  const [loading,setLoading] = useState(false);
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setMessage("");
     try {
       const res = await axiosInstance.post("/auth/login", formData);
       localStorage.setItem("token", res.data.token);
@@ -20,6 +23,8 @@ const Login = () => {
       setTimeout(() => navigate("/dashboard"), 1000); // redirect to dashboard
     } catch (err) {
       setMessage("❌ Login failed. Please check your credentials.");
+    }finally{
+      setLoading(false);
     }
   };
 
@@ -58,11 +63,40 @@ const Login = () => {
         </div>
 
         <button
-          type="submit"
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 rounded transition"
-        >
-          🔐 Login
-        </button>
+  type="submit"
+  disabled={loading}
+  className={`w-full ${
+    loading ? "bg-indigo-400" : "bg-indigo-600 hover:bg-indigo-700"
+  } text-white font-medium py-2 rounded transition flex items-center justify-center`}
+>
+  {loading ? (
+    <svg
+      className="animate-spin h-5 w-5 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      ></path>
+    </svg>
+
+    
+  ) : (
+    "🔐 Login"
+  )}
+</button>
+
 
         {message && (
           <p

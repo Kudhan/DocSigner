@@ -6,6 +6,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import SignatureHistory from "../components/signatureHistory";
 import SignatureToolbar from "../components/signToolbar";
 import { Toaster, toast } from "react-hot-toast";
+import Loader from "../components/Loader"; // ✅ Import your custom loader
 
 // Worker setup
 GlobalWorkerOptions.workerSrc = new URL(
@@ -20,6 +21,10 @@ const SignPDFPage = () => {
   const [viewport, setViewport] = useState(null);
   const [scale] = useState(1.5);
   const [allSignatures, setAllSignatures] = useState([]);
+  const [loading, setLoading] = useState(true); // full-page loader
+  const [saving, setSaving] = useState(false); // button loader
+  const [downloading, setDownloading] = useState(false); // button loader
+
   const [signature, setSignature] = useState({
     text: "Kudhan",
     x: 50,
@@ -56,6 +61,8 @@ const SignPDFPage = () => {
       } catch (err) {
         console.error(err);
         toast.error("❌ PDF loading failed");
+      } finally {
+        setLoading(false);
       }
     };
     loadPDF();
@@ -86,7 +93,7 @@ const SignPDFPage = () => {
     };
   }, [pdf, signature.page]);
 
-  // Fetch existing saved signatures
+  // Fetch saved signatures
   useEffect(() => {
     const fetchSignatures = async () => {
       try {
@@ -125,6 +132,7 @@ const SignPDFPage = () => {
   };
 
   const handleSave = async () => {
+    setSaving(true);
     try {
       if (!signature.text.trim()) {
         toast.error("Signature text cannot be empty");
@@ -138,6 +146,8 @@ const SignPDFPage = () => {
     } catch (err) {
       console.error(err);
       toast.error("❌ Failed to save signature");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -159,52 +169,55 @@ const SignPDFPage = () => {
     }
   };
 
- const handleDownload = async () => {
-  try {
-    const res = await axiosInstance.get(`/docs/${docId}`);
-    const fileUrl = res.data.path;
-    const existingPdfBytes = await fetch(fileUrl).then((r) => r.arrayBuffer());
-    const pdfDoc = await PDFDocument.load(existingPdfBytes);
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      const res = await axiosInstance.get(`/docs/${docId}`);
+      const fileUrl = res.data.path;
+      const existingPdfBytes = await fetch(fileUrl).then((r) => r.arrayBuffer());
+      const pdfDoc = await PDFDocument.load(existingPdfBytes);
 
-    const pages = pdfDoc.getPages();
-    const page = pages[signature.page - 1];
+      const pages = pdfDoc.getPages();
+      const page = pages[signature.page - 1];
 
-    const pdfWidth = page.getWidth();
-    const pdfHeight = page.getHeight();
+      const pdfWidth = page.getWidth();
+      const pdfHeight = page.getHeight();
 
-    const canvas = canvasRef.current;
-    const canvasWidth = canvas.width;
-    const canvasHeight = canvas.height;
+      const canvas = canvasRef.current;
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
 
-    const scaleX = pdfWidth / canvasWidth;
-    const scaleY = pdfHeight / canvasHeight;
+      const scaleX = pdfWidth / canvasWidth;
+      const scaleY = pdfHeight / canvasHeight;
 
-    const font = await getFont(pdfDoc, signature.style || "Helvetica");
-    const x = signature.x * scaleX;
-    const y = pdfHeight - signature.y * scaleY - signature.size * scaleY;
+      const font = await getFont(pdfDoc, signature.style || "Helvetica");
+      const x = signature.x * scaleX;
+      const y = pdfHeight - signature.y * scaleY - signature.size * scaleY;
 
-    page.drawText(signature.text || "Signature", {
-      x,
-      y,
-      size: signature.size * scaleX,
-      font,
-      color: hexToRgb(signature.color || "#000000"),
-    });
+      page.drawText(signature.text || "Signature", {
+        x,
+        y,
+        size: signature.size * scaleX,
+        font,
+        color: hexToRgb(signature.color || "#000000"),
+      });
 
-    const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "signed-document.pdf";
-    link.click();
-  } catch (err) {
-    console.error(err);
-    toast.error("❌ Failed to download signed PDF");
-  }
-};
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "signed-document.pdf";
+      link.click();
+    } catch (err) {
+      console.error(err);
+      toast.error("❌ Failed to download signed PDF");
+    } finally {
+      setDownloading(false);
+    }
+  };
 
-
+  if (loading) return <Loader />;
 
   return (
     <div className="min-h-screen bg-slate-100 p-6">
@@ -234,22 +247,28 @@ const SignPDFPage = () => {
           )}
         </div>
 
-        {/* Toolbar */}
+        {/* Sidebar Tools */}
         <div className="w-full lg:w-96 flex flex-col gap-6">
           <SignatureToolbar signature={signature} setSignature={setSignature} />
 
           <button
             onClick={handleSave}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
+            disabled={saving}
+            className={`bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow flex items-center justify-center ${
+              saving ? "opacity-60 cursor-not-allowed" : ""
+            }`}
           >
-            💾 Save Signature
+            {saving ? "Saving..." : "💾 Save Signature"}
           </button>
 
           <button
             onClick={handleDownload}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow"
+            disabled={downloading}
+            className={`bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow flex items-center justify-center ${
+              downloading ? "opacity-60 cursor-not-allowed" : ""
+            }`}
           >
-            📥 Download Signed PDF
+            {downloading ? "Downloading..." : "📥 Download Signed PDF"}
           </button>
 
           <SignatureHistory docId={docId} />

@@ -7,6 +7,7 @@ const UploadPage = () => {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -16,6 +17,8 @@ const UploadPage = () => {
 
   const handleUpload = async (e) => {
     e.preventDefault();
+    setMessage("");
+    setLoading(true);
 
     if (!file) {
       setMessage("⚠️ Please choose a PDF");
@@ -39,8 +42,12 @@ const UploadPage = () => {
       const errorMsg = err.response?.data?.message || err.message || "Unknown error";
       console.error("❌ Upload failed:", errorMsg);
       setMessage("❌ Upload failed: " + errorMsg);
+    }finally{
+      setLoading(false);
     }
   };
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-green-100 flex items-center justify-center px-4">
